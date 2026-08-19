@@ -2,6 +2,7 @@ const { createClient } = require('@supabase/supabase-js');
 const axios = require('axios');
 
 // Usamos module.exports para máxima compatibilidad con Vercel
+
 module.exports = async function (req, res) {
   // 1. Verificación del Webhook (Lo que usa Meta para conectarse)
   if (req.method === 'GET') {
