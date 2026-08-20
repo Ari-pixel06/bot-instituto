@@ -3,7 +3,7 @@ const app = express();
 app.use(express.json());
 
 const VERIFY_TOKEN = 'libertad_123'; // Tu contraseña inventada
-const META_TOKEN = 'EAAi8DNCKbGABSccDbT9iCKzgOlwpWfvBrCp4HFBI85pk8dPRroBQBuuqMKeWdmac3348aPZBN2XTbk6ldIH9iwCBY0w3bVL9uGXL5ioOre5TPWXQBeWbvdxCc4best7HTMhrs0n7jmXwx9VGWoiZBqUodz8AcgQsACUHLAbC35lSYN4FMOEnZBGXpqvEJiwKWAzW1hEWhmaFZCynlTokGYlFXGBZCIZBRmOzHpKOzuZArdgvHTbXnXHhBIRAs9YVaIZAssZBWb0xoRLQh8UsGXcCR'; // Pega tu token de Meta
+const WHATSAPP_TOKEN = 'EAAi8DNCKbGABSccDbT9iCKzgOlwpWfvBrCp4HFBI85pk8dPRroBQBuuqMKeWdmac3348aPZBN2XTbk6ldIH9iwCBY0w3bVL9uGXL5ioOre5TPWXQBeWbvdxCc4best7HTMhrs0n7jmXwx9VGWoiZBqUodz8AcgQsACUHLAbC35lSYN4FMOEnZBGXpqvEJiwKWAzW1hEWhmaFZCynlTokGYlFXGBZCIZBRmOzHpKOzuZArdgvHTbXnXHhBIRAs9YVaIZAssZBWb0xoRLQh8UsGXcCR'; // Pega tu token de Meta
 
 app.get('/api', (req, res) => {
     if (req.query['hub.mode'] === 'subscribe' && req.query['hub.verify_token'] === VERIFY_TOKEN) {
@@ -44,7 +44,7 @@ app.post('/api', async (req, res) => {
                     await fetch(`https://graph.facebook.com/v17.0/${phone_number_id}/messages`, {
                         method: 'POST',
                         headers: {
-                            'Authorization': `Bearer ${META_TOKEN}`,
+                            'Authorization': `Bearer ${WHATSAPP_TOKEN}`,
                             'Content-Type': 'application/json'
                         },
                         body: JSON.stringify({
