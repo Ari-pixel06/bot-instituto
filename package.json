@@ -1,18 +1,13 @@
 {
-
   "name": "bot-instituto",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Bot de WhatsApp",
+  "main": "api/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node api/index.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs",
   "dependencies": {
-    "@supabase/supabase-js": "^2.112.3",
-    "axios": "^1.19.0"
+    "@supabase/supabase-js": "^2.33.1",
+    "express": "^4.18.2"
   }
 }
