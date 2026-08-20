@@ -9,6 +9,7 @@ const WHATSAPP_TOKEN = 'EAAi8DNCKbGABSVkdDiBY0Ha28hQzqN2itZCL5vfenhHRHq3MQpou11p
 const SUPABASE_URL = 'https://tgdmrxklbzglxqgalosj.supabase.co/rest/v1/';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRnZG1yeGtsYnpnbHhxZ2Fsb3NqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcxNDY1MzcsImV4cCI6MjEwMjcyMjUzN30.ljf54dLWivnJZYmdlN7Gmf26bKE5D38u_9l_LGtZoeI';
 
+
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // 2. Función auxiliar para enviar mensajes
@@ -44,11 +45,11 @@ app.get(['/', '/api'], (req, res) => {
 // 4. Endpoint para recibir los mensajes de WhatsApp
 app.post(['/', '/api'], async (req, res) => {
     const body = req.body;
-    
+   
     if (body.object === 'whatsapp_business_account') {
         const entry = body.entry?.[0]?.changes?.[0]?.value;
         const message = entry?.messages?.[0];
-        
+       
         if (message?.type === 'text') {
             const userText = message.text.body.trim();
             const userTextLower = userText.toLowerCase();
@@ -88,6 +89,36 @@ app.post(['/', '/api'], async (req, res) => {
                             }
                             break;
                         case 'ESPERANDO_NOMBRE':
+                            await supabase.from('registro_pagos').update({ nombre_apellido: userText, paso_actual: 'ESPERANDO_CEDULA' }).eq('telefono', from);
+                            await enviarMensaje(from, `Gracias ${userText}. Ahora, por favor escribe tu número de *Cédula de Identidad*:`, phone_number_id);
+                            break;
+                        case 'ESPERANDO_CEDULA':
+                            await supabase.from('registro_pagos').update({ cedula: userText, paso_actual: 'ESPERANDO_PAGO' }).eq('telefono', from);
+                            await enviarMensaje(from, "Excelente. Finalmente, indícame los *datos de tu Pago Móvil* (Banco, Número de Referencia y Monto):", phone_number_id);
+                            break;
+                        case 'ESPERANDO_PAGO':
+                            await supabase.from('registro_pagos').update({ datos_pago_movil: userText, paso_actual: 'COMPLETADO' }).eq('telefono', from);
+                            await enviarMensaje(from, "✅ ¡Datos recibidos con éxito! Nuestro equipo verificará tu pago y te enviaremos tu recibo pronto.\n\nEscribe *Menú* si deseas volver al inicio.", phone_number_id);
+                            break;
+                        case 'COMPLETADO':
+                            await enviarMensaje(from, "Tu pago ya está en proceso de revisión. Si necesitas algo más, escribe *Menú*.", phone_number_id);
+                            break;
+                    }
+                }
+            } catch (error) {
+                console.error("Error en base de datos:", error);
+            }
+        }
+        res.status(200).send('EVENT_RECEIVED');
+    } else {
+        res.sendStatus(404);
+    }
+});
+
+module.exports = app;
+
+
+
 
 
 
