@@ -2,7 +2,7 @@ const express = require('express');
 const app = express();
 app.use(express.json());
 
-const VERIFY_TOKEN = 'libertad_123'; // Tu contraseña inventada
+const VERIFY_TOKEN = 'libertad123'; // Tu contraseña inventada
 const WHATSAPP_TOKEN = 'EAAi8DNCKbGABSccDbT9iCKzgOlwpWfvBrCp4HFBI85pk8dPRroBQBuuqMKeWdmac3348aPZBN2XTbk6ldIH9iwCBY0w3bVL9uGXL5ioOre5TPWXQBeWbvdxCc4best7HTMhrs0n7jmXwx9VGWoiZBqUodz8AcgQsACUHLAbC35lSYN4FMOEnZBGXpqvEJiwKWAzW1hEWhmaFZCynlTokGYlFXGBZCIZBRmOzHpKOzuZArdgvHTbXnXHhBIRAs9YVaIZAssZBWb0xoRLQh8UsGXcCR'; // Pega tu token de Meta
 
 app.get('/api', (req, res) => {

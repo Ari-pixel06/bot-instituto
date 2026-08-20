@@ -3,7 +3,7 @@ const { createClient } = require('@supabase/supabase-js');
 const app = express();
 app.use(express.json());
 
-const VERIFY_TOKEN = 'libertad_123';
+const VERIFY_TOKEN = 'libertad123';
 const WHATSAPP_TOKEN = 'EAAi8DNCKbGABSVkdDiBY0Ha28hQzqN2itZCL5vfenhHRHq3MQpou11pztqm2vkSBAF4AofnTesvJdcHyiaCvB2zLs0MEpD5bI4l7JRN1W114zrxa4ZCZAHAZCsaEYWBTwZCIZCZAdG2bWxFKCxZB9olS89NdVY7RUTBujV8Cj55lBLkwy02OMBgPiLoLe5CwXZCaBI6ZCCxz5xSzgeMZAQfAAZAq2vCZCSwWZAxEL6dQ6b84RaPFtcung3u8jK7ClxgTGhMc8biLYwXP8U8I7UVMjpIe5Q';
 const SUPABASE_URL = 'https://tgdmrxklbzglxqgalosj.supabase.co/rest/v1/';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRnZG1yeGtsYnpnbHhxZ2Fsb3NqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcxNDY1MzcsImV4cCI6MjEwMjcyMjUzN30.ljf54dLWivnJZYmdlN7Gmf26bKE5D38u_9l_LGtZoeI';
