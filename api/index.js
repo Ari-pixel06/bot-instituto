@@ -27,10 +27,9 @@ async function enviarMensaje(telefono_destino, texto, phone_number_id) {
     });
 }
 
-app.get('/api', (req, res) => { /* ... Tu código de validación GET se mantiene igual ... */ });
-
-app.post('/api', async (req, res) => {
-    const body = req.body;
+app.get(['/', '/api'], (req, res) => {
+// y más abajo...
+app.post(['/', '/api'], async (req, res) => {
    
     if (body.object === 'whatsapp_business_account') {
         const entry = body.entry?.[0]?.changes?.[0]?.value;
