@@ -1,77 +1,68 @@
-const { createClient } = require('@supabase/supabase-js');
-const axios = require('axios');
+const express = require('express');
+const app = express();
+app.use(express.json());
 
-// Usamos module.exports para máxima compatibilidad con Vercel
+const VERIFY_TOKEN = 'libertad_123'; // Tu contraseña inventada
+const META_TOKEN = 'EAAi8DNCKbGABSccDbT9iCKzgOlwpWfvBrCp4HFBI85pk8dPRroBQBuuqMKeWdmac3348aPZBN2XTbk6ldIH9iwCBY0w3bVL9uGXL5ioOre5TPWXQBeWbvdxCc4best7HTMhrs0n7jmXwx9VGWoiZBqUodz8AcgQsACUHLAbC35lSYN4FMOEnZBGXpqvEJiwKWAzW1hEWhmaFZCynlTokGYlFXGBZCIZBRmOzHpKOzuZArdgvHTbXnXHhBIRAs9YVaIZAssZBWb0xoRLQh8UsGXcCR'; // Pega tu token de Meta
 
-module.exports = async function (req, res) {
-  // 1. Verificación del Webhook (Lo que usa Meta para conectarse)
-  if (req.method === 'GET') {
-    const mode = req.query['hub.mode'];
-    const token = req.query['hub.verify_token'];
-    const challenge = req.query['hub.challenge'];
-
-    if (mode === 'subscribe' && token === process.env.VERIFY_TOKEN) {
-      return res.status(200).send(challenge);
+app.get('/api', (req, res) => {
+    if (req.query['hub.mode'] === 'subscribe' && req.query['hub.verify_token'] === VERIFY_TOKEN) {
+        res.status(200).send(req.query['hub.challenge']);
+    } else {
+        res.sendStatus(403);
     }
-    return res.status(403).json({ error: 'Token inválido' });
-  }
+});
 
-  // 2. Recepción de mensajes
-  if (req.method === 'POST') {
-    try {
-      const body = req.body;
+app.post('/api', async (req, res) => {
+    const body = req.body;
+    if (body.object === 'whatsapp_business_account') {
+        const entry = body.entry?.[0]?.changes?.[0]?.value;
+        const message = entry?.messages?.[0];
+        
+        if (message?.type === 'text') {
+            const userText = message.text.body.toLowerCase().trim();
+            const from = message.from;
+            const phone_number_id = entry.metadata.phone_number_id;
+            let respuestaText = "";
 
-      if (body.object && body.entry?.[0]?.changes?.[0]?.value?.messages) {
-        const message = body.entry[0].changes[0].value.messages[0];
-        const phone_number_id = body.entry[0].changes[0].value.metadata.phone_number_id;
-        const from = message.from;
-        const msg_body = message.text.body.trim();
+            // Lógica de respuestas
+            if (userText.includes('buenos dias') || userText.includes('buenos días')) {
+                respuestaText = "Gracias por conectarte con el Instituto Libertad. 🎓\n\nElige una opción:\n1️⃣ Inscripciones y precio\n2️⃣ Datos bancarios de la institución\n3️⃣ Validación de pago\n4️⃣ Preguntas frecuentes";
+            } else if (userText === '1') {
+                respuestaText = "📝 *Inscripciones:* El costo es de $50 mensuales. Las inscripciones están abiertas hasta fin de mes.";
+            } else if (userText === '2') {
+                respuestaText = "🏦 *Datos Bancarios:*\nBanco: X\nCuenta: 0123-4567...\nA nombre de: Instituto Libertad";
+            } else if (userText === '3') {
+                respuestaText = "✅ *Validación de pago:* Por favor, envía el número de referencia o una foto de tu comprobante por este medio.";
+            } else if (userText === '4') {
+                respuestaText = "❓ *Preguntas frecuentes:*\n- Horario: 8 AM a 5 PM.\n- Modalidad: 100% online.";
+            }
 
-        // A) Guardar en Supabase (Solo se conecta si llega un mensaje)
-        if (process.env.SUPABASE_URL && process.env.SUPABASE_KEY) {
-          const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
-          await supabase.from('mensajes').insert([{ telefono: from, texto: msg_body }]);
+            // Enviar mensaje si hay una respuesta programada
+            if (respuestaText !== "") {
+                try {
+                    await fetch(`https://graph.facebook.com/v17.0/${phone_number_id}/messages`, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${META_TOKEN}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            messaging_product: 'whatsapp',
+                            to: from,
+                            type: 'text',
+                            text: { body: respuestaText }
+                        })
+                    });
+                } catch (error) {
+                    console.error("Error:", error);
+                }
+            }
         }
-
-        // B) Lógica del menú
-        let respuestaBot = "";
-        switch (msg_body) {
-          case "1":
-            respuestaBot = "📚 *Requisitos y costos de inscripción:*\n- Fotocopia de la cédula.\n- 2 fotos tipo carnet.\n- Costo de inscripción: $XX.\n- Mensualidad: $XX.\n\nEscribe *0* para volver al menú principal.";
-            break;
-          case "2":
-            respuestaBot = "🏦 *Nuestros datos bancarios:*\nBanco: Nombre del Banco\nCuenta: 0100-XXXX-XXXX-XXXX\nA nombre de: Instituto Libertad\nRIF: J-XXXXXXXX-X\n\nEscribe *0* para volver al menú principal.";
-            break;
-          case "3":
-            respuestaBot = "✅ *Validar pagos:*\nPor favor, envíanos el *número de referencia*, banco de origen y el *nombre del estudiante* para procesar tu pago.\n\nEscribe *0* para volver al menú principal.";
-            break;
-          case "4":
-            respuestaBot = "❓ *Preguntas frecuentes:*\n- ¿Tienen clases online? Sí.\n- ¿Dónde están ubicados? En la sede Petare, calle...\n\nEscribe *0* para volver al menú principal.";
-            break;
-          default:
-            respuestaBot = "¡Bienvenido al *Instituto Libertad Sede Petare*! 🏫\n\n¿Cómo podemos ayudarte? Elige alguna de las siguientes opciones enviando el número:\n\n1️⃣ Requisitos y costos de inscripción.\n2️⃣ Datos bancarios.\n3️⃣ Validar pagos.\n4️⃣ Preguntas frecuentes.";
-            break;
-        }
-
-        // C) Enviar WhatsApp
-        await axios({
-          method: 'POST',
-          url: `https://graph.facebook.com/v17.0/${phone_number_id}/messages`,
-          data: {
-            messaging_product: 'whatsapp',
-            to: from,
-            text: { body: respuestaBot }
-          },
-          headers: { Authorization: `Bearer ${process.env.WHATSAPP_TOKEN}` }
-        });
-      }
-      return res.status(200).send('EVENT_RECEIVED');
-     
-    } catch (error) {
-      console.error("Error procesando el mensaje:", error);
-      return res.status(500).send('Error interno del servidor');
+        res.status(200).send('EVENT_RECEIVED');
+    } else {
+        res.sendStatus(404);
     }
-  }
+});
 
-  return res.status(405).send('Método no permitido');
-};
+module.exports = app;
